@@ -6,8 +6,9 @@ import example.nio.entities.InstructorDetail;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.query.Query;
 
-public class EagerLazyDemo {
+public class FetchJoinDemo {
 
     public static void main(String[] args) {
 
@@ -23,14 +24,24 @@ public class EagerLazyDemo {
         try(factory;session){
             session.beginTransaction();
 
+            // hibernate query with HQL
+
             int id = 1;
-            Instructor instructor = session.get(Instructor.class, id);
+            Query<Instructor> query =
+                    session.createQuery("select i from Instructor  i "
+                            + "JOIN fetch i.courses "
+                            + "where i.id=:theInstructorId",
+                            Instructor.class);
+
+            // set parameter on query
+            query.setParameter("theInstructorId", id);
+
+            // execute query and get instructor
+            Instructor instructor = query.getSingleResult();
 
             System.out.println("code: Instructor: " + instructor);
 
-            // get course for the instructor
-            System.out.println("code: Courses: " + instructor.getCourses());
-
+            // commit transaction
             session.getTransaction().commit();
             session.close();
 
